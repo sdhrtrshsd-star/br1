@@ -1,0 +1,480 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Брейн-рінг: Історія України</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #0057b7, #ffd700);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .quiz {
+            width: 960px;
+            background: white;
+            border: 8px solid #0057b7;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .timer {
+            float: right;
+            font-size: 40px;
+            font-weight: bold;
+            color: #0057b7;
+            background: #ffd700;
+            padding: 10px 20px;
+            border-radius: 60px;
+            border: 3px solid #0057b7;
+        }
+        h2 {
+            text-align: center;
+            color: #0057b7;
+            margin: 25px 0;
+            font-size: 28px;
+            text-shadow: 2px 2px 0 #ffd700;
+        }
+        .image-wrapper {
+            height: 380px;
+            border: 4px solid #ffd700;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #f8f8f8;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px #aaa;
+        }
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .answers button {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            margin: 10px 0;
+            font-size: 18px;
+            border: 2px solid #0057b7;
+            background: #f0f8ff;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .answers button:hover {
+            background: #d0e8ff;
+            transform: scale(1.02);
+        }
+        .answers button.correct {
+            background: #4CAF50;
+            color: white;
+            border-color: #2e7d32;
+        }
+        .answers button.wrong {
+            background: #f44336;
+            color: white;
+            border-color: #b71c1c;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .controls button {
+            flex: 1;
+            padding: 16px;
+            font-size: 18px;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .skip-btn {
+            background: #ffd700;
+            color: #0057b7;
+            border: 2px solid #0057b7;
+        }
+        .end-btn {
+            background: #ff6347;
+            color: white;
+            border: 2px solid #b71c1c;
+        }
+        .controls button:hover {
+            filter: brightness(0.9);
+            transform: scale(1.02);
+        }
+        .name-input {
+            text-align: center;
+            margin: 50px 0;
+            background: #f0f8ff;
+            padding: 40px;
+            border-radius: 60px;
+            border: 4px solid #ffd700;
+        }
+        .name-input h2 {
+            margin-top: 0;
+        }
+        .name-input input {
+            padding: 16px;
+            font-size: 20px;
+            width: 300px;
+            border: 3px solid #0057b7;
+            border-radius: 60px;
+            text-align: center;
+        }
+        .name-input button {
+            padding: 16px 40px;
+            background: #ffd700;
+            color: #0057b7;
+            border: 3px solid #0057b7;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 18px;
+            margin-left: 15px;
+            cursor: pointer;
+        }
+        .final {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(145deg, #fff, #f5f5f5);
+            border: 6px solid #ffd700;
+            border-radius: 80px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .final h2 {
+            font-size: 48px;
+            margin-bottom: 40px;
+            color: #0057b7;
+            text-shadow: 4px 4px 0 #ffd700;
+        }
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 30px;
+            margin: 40px 0;
+        }
+        .place {
+            background: white;
+            border-radius: 60px 60px 20px 20px;
+            padding: 30px 20px;
+            width: 220px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.1);
+            border: 4px solid #0057b7;
+        }
+        .place.first {
+            background: gold;
+            transform: scale(1.1);
+            border-color: #b8860b;
+        }
+        .place.second {
+            background: silver;
+            border-color: #5a5a5a;
+        }
+        .place.third {
+            background: #cd7f32; /* bronze */
+            border-color: #8b4513;
+        }
+        .place .medal {
+            font-size: 70px;
+            margin-bottom: 10px;
+        }
+        .place .team-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .place .stats {
+            font-size: 20px;
+            background: rgba(0,0,0,0.1);
+            padding: 10px;
+            border-radius: 40px;
+        }
+        .final p {
+            font-size: 24px;
+            margin: 10px;
+        }
+        #overallFinal {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="quiz">
+    <!-- Команда 1 -->
+    <div id="team1NameInput" class="name-input">
+        <h2>Назва Команди 1</h2>
+        <input id="team1Name" placeholder="Введіть назву" value="Жовто-блакитні">
+        <button onclick="startTeam(1)">Почати раунд</button>
+    </div>
+    <div id="team1" style="display:none;">
+        <div class="timer">⏱️ <span id="time1">00:00</span></div>
+        <h2 id="question1"></h2>
+        <div class="image-wrapper"><img id="image1" alt=""></div>
+        <div class="answers" id="answers1"></div>
+        <div class="controls">
+            <button class="skip-btn" onclick="skip(1)">Пропустити</button>
+            <button class="end-btn" onclick="finishTeam(1)">Завершити раунд</button>
+        </div>
+    </div>
+
+    <!-- Команда 2 -->
+    <div id="team2NameInput" class="name-input" style="display:none;">
+        <h2>Назва Команди 2</h2>
+        <input id="team2Name" placeholder="Введіть назву" value="Козаки">
+        <button onclick="startTeam(2)">Почати раунд</button>
+    </div>
+    <div id="team2" style="display:none;">
+        <div class="timer">⏱️ <span id="time2">00:00</span></div>
+        <h2 id="question2"></h2>
+        <div class="image-wrapper"><img id="image2" alt=""></div>
+        <div class="answers" id="answers2"></div>
+        <div class="controls">
+            <button class="skip-btn" onclick="skip(2)">Пропустити</button>
+            <button class="end-btn" onclick="finishTeam(2)">Завершити раунд</button>
+        </div>
+    </div>
+
+    <!-- Команда 3 -->
+    <div id="team3NameInput" class="name-input" style="display:none;">
+        <h2>Назва Команди 3</h2>
+        <input id="team3Name" placeholder="Введіть назву" value="Скіфи">
+        <button onclick="startTeam(3)">Почати раунд</button>
+    </div>
+    <div id="team3" style="display:none;">
+        <div class="timer">⏱️ <span id="time3">00:00</span></div>
+        <h2 id="question3"></h2>
+        <div class="image-wrapper"><img id="image3" alt=""></div>
+        <div class="answers" id="answers3"></div>
+        <div class="controls">
+            <button class="skip-btn" onclick="skip(3)">Пропустити</button>
+            <button class="end-btn" onclick="finishTeam(3)">Завершити раунд</button>
+        </div>
+    </div>
+
+    <!-- Фінал -->
+    <div id="overallFinal" class="final"></div>
+</div>
+
+<script>
+    // -------------------- Всі питання (39) --------------------
+    const questions = [
+        { q: "Коли на території України з'явились перші люди?", a: ["50 тис. років тому", "100 тис. років тому", "1 млн років тому", "1,5—2 млн років тому"], correct: 3, image: "https://patrioty.org.ua/images/2024/03/17080100_..jpg" },
+        { q: "Якому народу, що проживав на теренах України в стародавні часи, належить золота пектораль?", a: ["кіммерійці", "трипільці", "сармати", "скіфи"], correct: 3, image: "https://upload.wikimedia.org/wikipedia/commons/3/3b/Pektoral111.JPG" },
+        { q: "Як називається культура давніх землеробів, що існувала на території України 6 тис. років тому?", a: ["Скіфська", "Трипільська", "Сарматська", "Антична"], correct: 1, image: "https://www.eurofest.org.ua/wp-content/uploads/2026/01/d182d180d0b8d0bfd196d0bbd0bbd18f.webp" },
+        { q: "Позначте назву держави, на яку робили походи князі Русі-України Аскольд, Олег, Ігор і Святослав.", a: ["Болгарія", "Візантія", "Польща", "Угорщина"], correct: 1, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSf6fCpYnHdcU7hRn3S76S3Rcl2j5lWz07PIA&s" },
+        { q: "Позначте назву народу, від рук представників якого загинув князь Святослав.", a: ["болгари", "печеніги", "половці", "хозари"], correct: 1, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCI09enrRsMSBY65Eek-BQHFmUiU_n9ILmzw&s" },
+        { q: "Позначте ім'я князя, за правління якого почали карбувати перші монети на Русі.", a: ["Володимир", "Святослав", "Ярополк", "Ярослав"], correct: 0, image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Odessa_numismatic_museum_photo_05.jpg/330px-Odessa_numismatic_museum_photo_05.jpg" },
+        { q: "Хрещення Русі відбулося у:", a: ["960 р.", "988 р.", "888 р.", "1000 р."], correct: 1, image: "" },
+        { q: "Позначте ім’я князя, за якого відбулося хрещення Русі.", a: ["Володимир Мономах", "Володимир Великий", "Ярослав Мудрий", "Святослав"], correct: 1, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdcva1H6NMTDLZPvoLXAP0ecfNnLbAieLA-A&s" },
+        { q: "Позначте ім’я князя, який започаткував упорядкування зводу законів — «Руської правди».", a: ["Ярослав Мудрий", "Володимир Мономах", "Володимир Великий", "князь Ігор Старий"], correct: 0, image: "https://historyurok.com.ua/wp-content/uploads/2020/01/Kniga.jpg" },
+        { q: "Позначте факт, що стосується життя й діяльності Ярослава Мудрого.", a: ["успадкував владу від князя Святослава", "за часів його правління побудовано Софійський собор у Києві", "неодноразово влаштовував походи проти Візантії", "за його наказом була споруджена Десятинна церква"], correct: 1, image: "https://glavcom.ua/img/article/9867/75_big-v1708361540.jpg" },
+        { q: "На зображеній монеті часів Русі – України викарбувано княжий знак:", a: ["Мстислава Великого", "Володимира Великого", "Ярослава Мудрого", "Володимира Мономаха"], correct: 1, image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Odessa_numismatic_museum_photo_05.jpg/330px-Odessa_numismatic_museum_photo_05.jpg" },
+        { q: "Хто з галицько-волинських правителів заснував місто Львів?", a: ["Данило Галицький", "Лев Данилович", "Юрій I", "Юрій II Болеслав"], correct: 1, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRvXSl7F0k7xbWHjN-3xI485gs0gqRm-DcILQ&s" },
+        { q: "Кого вважають засновником першої Січі на Запорожжі?", a: ["Дмитра Байду-Вишневецького", "Петра Конашевича-Сагайдачного", "Василя-Костянтина Острозького", "Івана Сірка"], correct: 0, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQy_togyuT-7O9klIa4Koia3nz_CriifsXcg&s" },
+        { q: "Географічні назви Хортиця, Базавлук, Микитин Ріг, Чортомлик, Олешки пов’язані з місцями:", a: ["розташування Запорозьких Січей", "головних битв під час козацьких війн", "розташування турецьких фортець", "основних битв часів козацько-селянських повстань"], correct: 0, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuwXryupir3bJGuvniCVFOVyQHJBPHoODixA&s" },
+        { q: "Хто зображений на портреті?", a: ["Дмитро Байда-Вишневецький", "Петро Конашевич-Сагайдачний", "Богдан Хмельницький", "Іван Мазепа"], correct: 0, image: "https://www.alatyr-history.club/wp-content/uploads/2017/11/word-image-6.png" },
+        { q: "Який атрибут, зображений на портреті історичного діяча, указує на те, що він обіймав найвищу посаду у Війську Запорозькому?", a: ["шапка з двома пір’їнами", "хутряна накидка", "шабля на поясі", "булава в руці"], correct: 3, image: "https://discover.in.ua/uploads/illustrations/%D0%9E%D1%81%D0%BD%D0%BE%D0%B2%D0%BD%D1%96-%D0%BF%D0%BE%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%BD%D1%8F-%C2%AB%D0%9E%D1%80%D0%B4%D0%B8%D0%BD%D0%B0%D1%86%D1%96%D1%97-%D0%92%D1%96%D0%B9%D1%81%D1%8C%D0%BA%D0%B0-%D0%97%D0%B0%D0%BF%D0%BE%D1%80%D0%BE%D0%B7%D1%8C%D0%BA%D0%BE%D0%B3%D0%BE-%D1%8F%D0%BA%D0%B5-%D0%BF%D0%B5%D1%80%D0%B5%D0%B1%D1%83%D0%B2%D0%B0%D1%94-%D0%BD%D0%B0-%D1%81%D0%BB%D1%83%D0%B6%D0%B1%D1%96-%D0%A0%D0%B5%D1%87%D1%96-%D0%9F%D0%BE%D1%81%D0%BF%D0%BE%D0%BB%D0%B8%D1%82%D0%BE%D1%97%C2%BB.jpg" },
+        { q: "Першою столицею Гетьманщини було місто:", a: ["Глухів", "Чигирин", "Батурин", "Гадяч"], correct: 1, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLV8xIh8GtLeMNdCCs9qk7HoWdm8zXNCpwvw&s" },
+        { q: "Яка річка була пов’язана із життям запорозьких козаків?", a: ["Дунай", "Дніпро", "Дністер", "Тиса"], correct: 1, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPvQQgxv09bm-b2BMKBrTPYGSLt6hcqsxKnA&s" },
+        { q: "Як називали човни козаків?", a: ["Галери", "Байдарки", "Чайки", "Шхуни"], correct: 2, image: "https://spadok.org.ua/images/kozaky/1434320639_dybok_6.jpg" },
+        { q: "Проти кого часто воювали козаки на морі?", a: ["Турків і татар", "Французів", "Німців", "Англійців"], correct: 0, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlZS1JzAohVvSXkoDv1FXqaEtO61uHQGdNYg&s" },
+        { q: "Як називали козацьке військо?", a: ["Полк", "Орда", "Військо Запорозьке", "Легіон"], correct: 2, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQui1Cita9gkkVanZV5GKZ9XV9pmdcoR5ThFQ&s" },
+        { q: "Який елемент зачіски був традиційним у козаків?", a: ["Коса", "Оселедець", "Хвіст", "Чубчик"], correct: 1, image: "https://fs04.vseosvita.ua/0402ji3x-464e-1200x630.jpg" },
+        { q: "Як називався козацький прапор?", a: ["Хоругва", "Штандарт", "Прапорець", "Стяг"], correct: 0, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSFO0eLgsPN9SpxwQaqfcEOnWtQYyXbKVrqAg&s" },
+        { q: "Як називали головний укріплений центр козаків?", a: ["Фортеця", "Січ", "Замок", "Палац"], correct: 1, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPMJR1ZxJNuHe1BrFMutAhICAXIhacLCRZgQ&s" },
+        { q: "Як називали козацький одяг — широкі штани?", a: ["Шаровари", "Кюлоти", "Панталон", "Брюки"], correct: 0, image: "https://html.striy.org.ua/archive/6_2024/HC3-Cossacks/HC3-Cossacks-08.jpg" },
+        { q: "Кого вважали покровителем козаків?", a: ["Святий Юрій", "Святий Миколай", "Покрова Пресвятої Богородиці", "Святий Петро"], correct: 2, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHuz4edj9dLu1Rjf-OBIL6YP-Ptt62lgYBcg&s" },
+        { q: "Як називали символи влади гетьмана?", a: ["Клейноди", "Медалі", "Ордени", "Прапори"], correct: 0, image: "https://lh6.googleusercontent.com/proxy/YzGJm-a_r9X4lI73FpcyJyjie4ZXa-CP2VyM5IgqE8w95vwk5F3d11OKeQ0vCGaogUhHn8XKrQpI__OgmebaxJEK8Tf9SwygHZgGmJ7Qd_oQ8Sub7OD0YknqALeOvn4XTQxzC7TXaPq1ZodtrXMvPUcrRHbjMiVe4ug" },
+        { q: "Який інструмент використовували для подачі сигналів у війську?", a: ["Литаври", "Труба", "Сопілка", "Трембіта"], correct: 0, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd_B2W_u9-ewNIQQtcr_ZeK8IpBOJFQ33y5g&s" },
+        { q: "Який відомий гетьман очолював визвольну війну 1648 року?", a: ["Іван Мазепа", "Богдан Хмельницький", "Петро Сагайдачний", "Іван Виговський"], correct: 1, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTN7DkFP4SonQk_PyxyaU8J84QppdKAV9IwKw&s" },
+        { q: "Як називали збори, на якій козаки вирішували важливі питання?", a: ["Дума", "Козацька рада", "Сенат", "Віче"], correct: 1, image: "https://naurok.com.ua/uploads/files/1566982/230783/246683_html/images/230783.002.jpg" },
+        { q: "Який музичний інструмент часто згадується у козацьких думах?", a: ["Скрипка", "Бандура", "Сопілка", "Саксофон"], correct: 1, image: "https://old.libr.dp.ua/uuploads/images/05%20bandura.jpg" },
+        { q: "Як називали житло козаків на Січі?", a: ["Хата", "Курінь", "Слобода", "Фортеця"], correct: 1, image: "https://static.ukrinform.com/photos/2020_10/1602082300-834.jpg" },
+        { q: "Хто є автором картини, репродукцію якої подано нижче?", a: ["С. Васильківський", "М. Пимоненко", "В. Тропінін", "І. Рєпін"], correct: 3, image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Ilja_Jefimowitsch_Repin_-_Reply_of_the_Zaporozhian_Cossacks_-_Yorck.jpg/500px-Ilja_Jefimowitsch_Repin_-_Reply_of_the_Zaporozhian_Cossacks_-_Yorck.jpg" },
+        { q: "Коли за наказом російської імператриці Катерини ІІ було знищено останню Січ на Запорожжі?", a: ["1775", "1648", "1701", "1861"], correct: 0, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4ZV5KHQ081s8kPH1suCMRmjFE7AC9aspyeA&s" },
+        { q: "Хто був останнім гетьманом?", a: ["Данило Апостол", "Іван Скоропадський", "Кирило Розумовський", "Іван Мазепа"], correct: 2, image: "https://3.lic.zhitomir.ua/wp-content/uploads/2023/03/r0.jpg" },
+        { q: "Кого з гетьманів вважають автором першої Конституції України?", a: ["Богдана Хмельницького", "Петра Конашевича-Сагайдачного", "Івана Мазепу", "Пилипа Орлика"], correct: 3, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfcviDv4MU-w0k5FXycX-1TDJYmT63uYyF2w&s" },
+        { q: "Яка з указаних ознак є головною у визначенні поняття «кріпацтво»?", a: ["щоденний відробіток панщини", "особиста залежність селянина від пана", "сплата оброку", "виконання повинностей"], correct: 1, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmSRX2-by_BxvnzfsE9FXxdooBpjWYPRhnmw&s" },
+        { q: "Як називається найвідоміша збірка зображеного діяча української культури?", a: ["«Енеїда»", "«Кобзар»", "«Лісова пісня»", "«Заповіт»"], correct: 1, image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Taras_Shevchenko_-_portrait_by_Ivan_Kramskoi.jpg/500px-Taras_Shevchenko_-_portrait_by_Ivan_Kramskoi.jpg" },
+        { q: "Хто є автором картини, зображеної на репродукції?", a: ["В. Боровиковський", "М. Пимоненко", "Т. Шевченко", "І. Рєпін"], correct: 3, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR88SGdJr72qwMoWi9LNYw-Z0mKvGwWZpMDjw&s" }
+    ];
+
+    // -------------------- Глобальні змінні --------------------
+    let teamQuestions = [[], [], []];         // по 13 випадкових питань для кожної команди
+    let teamNames = ["", "", ""];
+    let scores = [0, 0, 0];
+    let indices = [0, 0, 0];
+    let startTimes = [null, null, null];      // час старту раунду (timestamp)
+    let elapsedSeconds = [0, 0, 0];            // накопичені секунди (фіксуємо після завершення)
+    let timers = [null, null, null];
+    let currentTeam = 1;
+
+    // -------------------- Перемішування і розподіл питань --------------------
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    // Роздати кожній команді по 13 випадкових унікальних питань
+    const shuffled = shuffleArray([...questions]);
+    teamQuestions[0] = shuffled.slice(0, 13);
+    teamQuestions[1] = shuffled.slice(13, 26);
+    teamQuestions[2] = shuffled.slice(26, 39);
+
+    // -------------------- Допоміжні функції --------------------
+    function formatTime(sec) {
+        let m = Math.floor(sec / 60);
+        let s = sec % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function loadQuestion() {
+        const list = teamQuestions[currentTeam - 1];
+        const i = indices[currentTeam - 1];
+        document.getElementById(`question${currentTeam}`).textContent = list[i].q;
+        document.getElementById(`image${currentTeam}`).src = list[i].image || 'https://via.placeholder.com/800x400?text=Немає+зображення';
+        const div = document.getElementById(`answers${currentTeam}`);
+        div.innerHTML = "";
+        list[i].a.forEach((text, k) => {
+            const btn = document.createElement("button");
+            btn.textContent = text;
+            btn.onclick = () => checkAnswer(k);
+            div.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(k) {
+        const list = teamQuestions[currentTeam - 1];
+        const i = indices[currentTeam - 1];
+        if (k === list[i].correct) scores[currentTeam - 1]++;
+
+        const btns = document.getElementById(`answers${currentTeam}`).children;
+        for (let j = 0; j < btns.length; j++) {
+            btns[j].disabled = true;
+            if (j === list[i].correct) btns[j].classList.add("correct");
+            else if (j === k) btns[j].classList.add("wrong");
+        }
+
+        setTimeout(() => {
+            indices[currentTeam - 1]++;
+            if (indices[currentTeam - 1] < list.length) {
+                loadQuestion();
+            } else {
+                finishTeam(currentTeam);
+            }
+        }, 3000);
+    }
+
+    function skip(team) {
+        indices[team - 1]++;
+        if (indices[team - 1] < teamQuestions[team - 1].length) {
+            loadQuestion();
+        } else {
+            finishTeam(team);
+        }
+    }
+
+    function startTeam(team) {
+        // Зберігаємо назву команди
+        teamNames[team - 1] = document.getElementById(`team${team}Name`).value.trim() || `Команда ${team}`;
+
+        // Ховаємо введення назви, показуємо гру
+        document.getElementById(`team${team}NameInput`).style.display = "none";
+        document.getElementById(`team${team}`).style.display = "block";
+        currentTeam = team;
+
+        // Скидаємо лічильники для цієї команди (якщо раунд не дограний)
+        indices[team - 1] = 0;
+        scores[team - 1] = 0;
+        elapsedSeconds[team - 1] = 0;
+        startTimes[team - 1] = Date.now();
+
+        // Завантажуємо перше питання
+        loadQuestion();
+
+        // Запускаємо секундомір (оновлення щосекунди)
+        if (timers[team - 1]) clearInterval(timers[team - 1]);
+        timers[team - 1] = setInterval(() => {
+            if (startTimes[team - 1]) {
+                const now = Date.now();
+                const diff = Math.floor((now - startTimes[team - 1]) / 1000);
+                elapsedSeconds[team - 1] = diff;
+                document.getElementById(`time${team}`).textContent = formatTime(diff);
+            }
+        }, 1000);
+    }
+
+    function finishTeam(team) {
+        // Зупиняємо таймер
+        if (timers[team - 1]) {
+            clearInterval(timers[team - 1]);
+            timers[team - 1] = null;
+        }
+        // Фіксуємо час (якщо ще не зафіксовано)
+        if (startTimes[team - 1]) {
+            const now = Date.now();
+            elapsedSeconds[team - 1] = Math.floor((now - startTimes[team - 1]) / 1000);
+            startTimes[team - 1] = null;
+        }
+
+        // Ховаємо поточний раунд
+        document.getElementById(`team${team}`).style.display = "none";
+
+        // Перехід до наступної команди або фіналу
+        if (team < 3) {
+            document.getElementById(`team${team + 1}NameInput`).style.display = "block";
+        } else {
+            showFinalResults();
+        }
+    }
+
+    function showFinalResults() {
+        // Підготувати дані для рейтингу
+        let results = [];
+        for (let t = 0; t < 3; t++) {
+            results.push({
+                name: teamNames[t] || `Команда ${t + 1}`,
+                score: scores[t],
+                time: elapsedSeconds[t]
+            });
+        }
+
+        // Сортування: більше очок, при рівності – менший час
+        results.sort((a, b) => {
+            if (a.score !== b.score) return b.score - a.score;
+            else return a.time - b.time;
+        });
+
+        // Формуємо HTML для подіуму
+        const medals = ['🥇', '🥈', '🥉'];
+        const places = ['first', 'second', 'third'];
+        let podiumHTML = '<h2>⚡ ФІНАЛЬНИЙ РЕЙТИНГ ⚡</h2><div class="podium">';
+
+        for (let i = 0; i < 3; i++) {
+            const r = results[i];
+            podiumHTML += `
+                <div class="place ${places[i]}">
+                    <div class="medal">${medals[i]}</div>
+                    <div class="team-name">${r.name}</div>
+                    <div class="stats">✅ ${r.score} / 13<br>⏱️ ${formatTime(r.time)}</div>
+                </div>
+            `;
+        }
+        podiumHTML += '</div>';
+
+        document.getElementById('overallFinal').innerHTML = podiumHTML;
+        document.getElementById('overallFinal').style.display = 'block';
+    }
+</script>
+</body>
+</html>
