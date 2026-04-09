@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
@@ -214,7 +214,7 @@
         <button onclick="startTeam(1)">Почати раунд</button>
     </div>
     <div id="team1" style="display:none;">
-        <div class="timer">⏱️ <span id="time1">00:00</span></div>
+        <div class="timer">⏱️ <span id="time1">00:30</span></div>
         <h2 id="question1"></h2>
         <div class="image-wrapper"><img id="image1" alt=""></div>
         <div class="answers" id="answers1"></div>
@@ -231,7 +231,7 @@
         <button onclick="startTeam(2)">Почати раунд</button>
     </div>
     <div id="team2" style="display:none;">
-        <div class="timer">⏱️ <span id="time2">00:00</span></div>
+        <div class="timer">⏱️ <span id="time2">00:30</span></div>
         <h2 id="question2"></h2>
         <div class="image-wrapper"><img id="image2" alt=""></div>
         <div class="answers" id="answers2"></div>
@@ -248,7 +248,7 @@
         <button onclick="startTeam(3)">Почати раунд</button>
     </div>
     <div id="team3" style="display:none;">
-        <div class="timer">⏱️ <span id="time3">00:00</span></div>
+        <div class="timer">⏱️ <span id="time3">00:30</span></div>
         <h2 id="question3"></h2>
         <div class="image-wrapper"><img id="image3" alt=""></div>
         <div class="answers" id="answers3"></div>
@@ -307,13 +307,13 @@
     ];
 
     // -------------------- Глобальні змінні --------------------
-    let teamQuestions = [[], [], []];         // по 13 випадкових питань для кожної команди
+    let teamQuestions = [[], [], []];     // по 10 питань для кожної команди
     let teamNames = ["", "", ""];
     let scores = [0, 0, 0];
     let indices = [0, 0, 0];
-    let startTimes = [null, null, null];      // час старту раунду (timestamp)
-    let elapsedSeconds = [0, 0, 0];            // накопичені секунди (фіксуємо після завершення)
-    let timers = [null, null, null];
+    let startTimes = [null, null, null];  // для підрахунку загального часу раунду
+    let elapsedSeconds = [0, 0, 0];
+    let qTimers = [null, null, null];     // таймери по 30 секунд на питання
     let currentTeam = 1;
 
     // -------------------- Перемішування і розподіл питань --------------------
@@ -325,11 +325,11 @@
         return arr;
     }
 
-    // Роздати кожній команді по 13 випадкових унікальних питань
+    // Роздаємо по 10 питань кожній команді
     const shuffled = shuffleArray([...questions]);
-    teamQuestions[0] = shuffled.slice(0, 13);
-    teamQuestions[1] = shuffled.slice(13, 26);
-    teamQuestions[2] = shuffled.slice(26, 39);
+    teamQuestions[0] = shuffled.slice(0, 10);
+    teamQuestions[1] = shuffled.slice(10, 20);
+    teamQuestions[2] = shuffled.slice(20, 30);
 
     // -------------------- Допоміжні функції --------------------
     function formatTime(sec) {
@@ -338,11 +338,57 @@
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
 
+    // Таймер 30 секунд на одне питання
+    function startQuestionTimer(team) {
+        const idx = team - 1;
+        if (qTimers[idx]) clearInterval(qTimers[idx]);
+
+        let timeLeft = 30;
+        const timerEl = document.getElementById(`time${team}`);
+        timerEl.textContent = formatTime(timeLeft);
+
+        qTimers[idx] = setInterval(() => {
+            timeLeft--;
+            timerEl.textContent = formatTime(timeLeft);
+            if (timeLeft <= 0) {
+                clearInterval(qTimers[idx]);
+                qTimers[idx] = null;
+                handleTimeOut(team);
+            }
+        }, 1000);
+    }
+
+    // Автоматичний пропуск при закінченні часу (без балу)
+    function handleTimeOut(team) {
+        const idx = team - 1;
+        const list = teamQuestions[idx];
+        const i = indices[idx];
+
+        // Вимикаємо кнопки
+        const div = document.getElementById(`answers${team}`);
+        if (div) {
+            const btns = div.children;
+            for (let j = 0; j < btns.length; j++) btns[j].disabled = true;
+        }
+
+        setTimeout(() => {
+            indices[idx]++;
+            if (indices[idx] < list.length) {
+                currentTeam = team;
+                loadQuestion();
+            } else {
+                finishTeam(team);
+            }
+        }, 2000);
+    }
+
     function loadQuestion() {
         const list = teamQuestions[currentTeam - 1];
         const i = indices[currentTeam - 1];
+
         document.getElementById(`question${currentTeam}`).textContent = list[i].q;
         document.getElementById(`image${currentTeam}`).src = list[i].image || 'https://via.placeholder.com/800x400?text=Немає+зображення';
+
         const div = document.getElementById(`answers${currentTeam}`);
         div.innerHTML = "";
         list[i].a.forEach((text, k) => {
@@ -351,11 +397,22 @@
             btn.onclick = () => checkAnswer(k);
             div.appendChild(btn);
         });
+
+        // Запускаємо таймер 30 секунд
+        startQuestionTimer(currentTeam);
     }
 
     function checkAnswer(k) {
         const list = teamQuestions[currentTeam - 1];
         const i = indices[currentTeam - 1];
+
+        // Зупиняємо таймер питання
+        const idx = currentTeam - 1;
+        if (qTimers[idx]) {
+            clearInterval(qTimers[idx]);
+            qTimers[idx] = null;
+        }
+
         if (k === list[i].correct) scores[currentTeam - 1]++;
 
         const btns = document.getElementById(`answers${currentTeam}`).children;
@@ -376,8 +433,14 @@
     }
 
     function skip(team) {
-        indices[team - 1]++;
-        if (indices[team - 1] < teamQuestions[team - 1].length) {
+        const idx = team - 1;
+        if (qTimers[idx]) {
+            clearInterval(qTimers[idx]);
+            qTimers[idx] = null;
+        }
+        currentTeam = team;
+        indices[idx]++;
+        if (indices[idx] < teamQuestions[idx].length) {
             loadQuestion();
         } else {
             finishTeam(team);
@@ -385,52 +448,37 @@
     }
 
     function startTeam(team) {
-        // Зберігаємо назву команди
         teamNames[team - 1] = document.getElementById(`team${team}Name`).value.trim() || `Команда ${team}`;
 
-        // Ховаємо введення назви, показуємо гру
         document.getElementById(`team${team}NameInput`).style.display = "none";
         document.getElementById(`team${team}`).style.display = "block";
-        currentTeam = team;
 
-        // Скидаємо лічильники для цієї команди (якщо раунд не дограний)
+        currentTeam = team;
         indices[team - 1] = 0;
         scores[team - 1] = 0;
         elapsedSeconds[team - 1] = 0;
         startTimes[team - 1] = Date.now();
 
-        // Завантажуємо перше питання
         loadQuestion();
-
-        // Запускаємо секундомір (оновлення щосекунди)
-        if (timers[team - 1]) clearInterval(timers[team - 1]);
-        timers[team - 1] = setInterval(() => {
-            if (startTimes[team - 1]) {
-                const now = Date.now();
-                const diff = Math.floor((now - startTimes[team - 1]) / 1000);
-                elapsedSeconds[team - 1] = diff;
-                document.getElementById(`time${team}`).textContent = formatTime(diff);
-            }
-        }, 1000);
     }
 
     function finishTeam(team) {
-        // Зупиняємо таймер
-        if (timers[team - 1]) {
-            clearInterval(timers[team - 1]);
-            timers[team - 1] = null;
-        }
-        // Фіксуємо час (якщо ще не зафіксовано)
-        if (startTimes[team - 1]) {
-            const now = Date.now();
-            elapsedSeconds[team - 1] = Math.floor((now - startTimes[team - 1]) / 1000);
-            startTimes[team - 1] = null;
+        const idx = team - 1;
+
+        // Зупиняємо таймер питання
+        if (qTimers[idx]) {
+            clearInterval(qTimers[idx]);
+            qTimers[idx] = null;
         }
 
-        // Ховаємо поточний раунд
+        // Фіксуємо загальний час раунду
+        if (startTimes[idx]) {
+            elapsedSeconds[idx] = Math.floor((Date.now() - startTimes[idx]) / 1000);
+            startTimes[idx] = null;
+        }
+
         document.getElementById(`team${team}`).style.display = "none";
 
-        // Перехід до наступної команди або фіналу
         if (team < 3) {
             document.getElementById(`team${team + 1}NameInput`).style.display = "block";
         } else {
@@ -439,7 +487,6 @@
     }
 
     function showFinalResults() {
-        // Підготувати дані для рейтингу
         let results = [];
         for (let t = 0; t < 3; t++) {
             results.push({
@@ -449,13 +496,11 @@
             });
         }
 
-        // Сортування: більше очок, при рівності – менший час
         results.sort((a, b) => {
             if (a.score !== b.score) return b.score - a.score;
-            else return a.time - b.time;
+            return a.time - b.time;
         });
 
-        // Формуємо HTML для подіуму
         const medals = ['🥇', '🥈', '🥉'];
         const places = ['first', 'second', 'third'];
         let podiumHTML = '<h2>⚡ ФІНАЛЬНИЙ РЕЙТИНГ ⚡</h2><div class="podium">';
@@ -466,7 +511,7 @@
                 <div class="place ${places[i]}">
                     <div class="medal">${medals[i]}</div>
                     <div class="team-name">${r.name}</div>
-                    <div class="stats">✅ ${r.score} / 13<br>⏱️ ${formatTime(r.time)}</div>
+                    <div class="stats">✅ ${r.score} / 10<br>⏱️ ${formatTime(r.time)}</div>
                 </div>
             `;
         }
